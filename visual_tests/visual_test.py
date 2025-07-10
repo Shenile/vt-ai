@@ -10,7 +10,7 @@ def save_ui_snapshot(commit_hash):
     os.makedirs(baseline_dir, exist_ok=True)
 
     capture_screenshot(
-        url="http://localhost:5173",
+        url="https://www.google.com/",
         file_name="ui_snapshot",
         file_path=baseline_dir
     )
