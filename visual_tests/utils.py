@@ -1,3 +1,5 @@
+import os
+
 def capture_screenshot(url, file_name, file_path):
     os.makedirs(file_path, exist_ok=True)
 
