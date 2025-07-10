@@ -1,8 +1,4 @@
-import os
-from playwright.sync_api import sync_playwright, TimeoutError
-
 def capture_screenshot(url, file_name, file_path):
-    # Ensure output directory exists
     os.makedirs(file_path, exist_ok=True)
 
     try:
@@ -15,10 +11,8 @@ def capture_screenshot(url, file_name, file_path):
                 )
                 page = context.new_page()
 
-                # Go to the target URL and wait until the network is idle
                 page.goto(url, wait_until="networkidle", timeout=15000)
 
-                # Disable CSS animations and transitions
                 page.add_style_tag(content="""
                     * {
                         animation: none !important;
@@ -26,10 +20,9 @@ def capture_screenshot(url, file_name, file_path):
                     }
                 """)
 
-                # Wait for fonts to finish loading
-                page.evaluate("return document.fonts.ready")
+                # ✅ Properly wait for fonts to load
+                page.evaluate("() => new Promise(resolve => document.fonts.ready.then(resolve))")
 
-                # Capture a full-page screenshot
                 output_path = os.path.join(file_path, f"{file_name}.png")
                 page.screenshot(path=output_path, full_page=True)
 
