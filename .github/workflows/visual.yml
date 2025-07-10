@@ -25,3 +25,9 @@ jobs:
 
     - name: Run visual test
       run: python visual_tests/visual_test.py $GITHUB_SHA
+
+    - name: Upload UI snapshot as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ui-snapshot-${{ github.sha }}
+        path: visual_tests/baseline/${{ github.sha }}/ui_snapshot.png
