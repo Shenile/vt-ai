@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -19,25 +19,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "Upgrading pip and installing Python dependencies..."
           python -m pip install --upgrade pip
           pip install -r visual_tests/requirements.txt
-          echo "Installing Playwright browsers..."
           python -m playwright install --with-deps
 
-      - name: Run visual test
+      - name: Run visual test and capture multiple page screenshots
         run: |
-          echo "Running visual test for commit: $GITHUB_SHA"
+          echo "Starting visual test for commit $GITHUB_SHA"
           python visual_tests/visual_test.py $GITHUB_SHA
-          echo "Visual test script execution complete."
+          echo "Capture complete"
 
-      - name: List baseline contents
+      - name: Push all screenshots to visual-baselines branch
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          echo "Listing contents of visual_tests/baseline directory:"
-          ls -R visual_tests/baseline || echo "Baseline directory not found."
+          git config --global user.name "vt-bot"
+          git config --global user.email "vt-bot@example.com"
 
-      - name: Upload UI snapshot as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ui-snapshot-${{ github.sha }}
-          path: visual_tests/baseline/${{ github.sha }}/ui_snapshot.png
+          git clone https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} baseline-repo
+          cd baseline-repo
+
+          git checkout visual-baselines || git checkout -b visual-baselines
+
+          mkdir -p baselines/${{ github.sha }}
+          cp ../visual_tests/baseline/${{ github.sha }}/*.png baselines/${{ github.sha }}/
+
+          git add baselines/
+          git commit -m "Add baseline screenshots for commit ${{ github.sha }}"
+          git push origin visual-baselines
