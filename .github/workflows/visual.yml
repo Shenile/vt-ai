@@ -23,17 +23,17 @@ jobs:
           pip install -r visual_tests/requirements.txt
           python -m playwright install --with-deps
       
-      - name: Build frontend
-        working-directory: vt-ai-fe
-        run: |
-          npm ci
-          npm run build
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./vt-ai-fe
 
-      - name: Serve frontend locally
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./vt-ai-fe
+
+      - name: Serve frontend (in background)
         run: |
-          npm install -g http-server
-          http-server ./vi-ai-fe/dist -p 4173 &
-          sleep 5  # Give the server time to boot
+          npx http-server ./vt-ai-fe/dist -p 5173 &
           
       - name: Run visual test and capture multiple page screenshots
         run: |
