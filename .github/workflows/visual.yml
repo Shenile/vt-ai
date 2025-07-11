@@ -17,11 +17,28 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('visual_tests/requirements.txt') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('visual_tests/requirements.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r visual_tests/requirements.txt
           python -m playwright install --with-deps
+
       
       - name: Install frontend dependencies
         run: npm ci
