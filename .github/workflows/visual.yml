@@ -9,25 +9,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r visual_tests/requirements.txt
-        playwright install --with-deps
+      - name: Install dependencies
+        run: |
+          echo "Upgrading pip and installing Python dependencies..."
+          python -m pip install --upgrade pip
+          pip install -r visual_tests/requirements.txt
+          echo "Installing Playwright browsers..."
+          python -m playwright install --with-deps
 
-    - name: Run visual test
-      run: python visual_tests/visual_test.py $GITHUB_SHA
+      - name: Run visual test
+        run: |
+          echo "Running visual test for commit: $GITHUB_SHA"
+          python visual_tests/visual_test.py $GITHUB_SHA
+          echo "Visual test script execution complete."
 
-    - name: Upload UI snapshot as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ui-snapshot-${{ github.sha }}
-        path: visual_tests/baseline/${{ github.sha }}/ui_snapshot.png
+      - name: List baseline contents
+        run: |
+          echo "Listing contents of visual_tests/baseline directory:"
+          ls -R visual_tests/baseline || echo "Baseline directory not found."
+
+      - name: Upload UI snapshot as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-snapshot-${{ github.sha }}
+          path: visual_tests/baseline/${{ github.sha }}/ui_snapshot.png

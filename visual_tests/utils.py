@@ -1,36 +1,39 @@
 import os
+from playwright.sync_api import sync_playwright, TimeoutError
 
 def capture_screenshot(url, file_name, file_path):
+    print(f"Ensuring directory exists: {file_path}")
     os.makedirs(file_path, exist_ok=True)
 
     try:
         with sync_playwright() as p:
-            with p.chromium.launch(headless=True) as browser:
-                context = browser.new_context(
-                    viewport={"width": 1280, "height": 800},
-                    device_scale_factor=1,
-                    is_mobile=False
-                )
-                page = context.new_page()
+            print("Launching Chromium browser in headless mode...")
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(
+                viewport={"width": 1280, "height": 800},
+                device_scale_factor=1,
+                is_mobile=False
+            )
+            page = context.new_page()
+            print(f"Navigating to URL: {url}")
+            page.goto(url, wait_until="networkidle", timeout=15000)
 
-                page.goto(url, wait_until="networkidle", timeout=15000)
+            page.add_style_tag(content="""
+                * {
+                    animation: none !important;
+                    transition: none !important;
+                }
+            """)
 
-                page.add_style_tag(content="""
-                    * {
-                        animation: none !important;
-                        transition: none !important;
-                    }
-                """)
+            print("Waiting for fonts to be ready...")
+            page.evaluate("() => new Promise(resolve => document.fonts.ready.then(resolve))")
 
-                # ✅ Properly wait for fonts to load
-                page.evaluate("() => new Promise(resolve => document.fonts.ready.then(resolve))")
-
-                output_path = os.path.join(file_path, f"{file_name}.png")
-                page.screenshot(path=output_path, full_page=True)
-
-                print(f"Screenshot saved to: {output_path}")
+            output_path = os.path.join(file_path, f"{file_name}.png")
+            print(f"Saving screenshot to: {output_path}")
+            page.screenshot(path=output_path, full_page=True)
+            print("Screenshot capture completed.")
 
     except TimeoutError:
-        print("Timeout occurred while waiting for page or selector.")
+        print("TimeoutError: Page load timed out.")
     except Exception as e:
-        print(f"Error during screenshot capture: {e}")
+        print(f"Exception during screenshot capture: {e}")
