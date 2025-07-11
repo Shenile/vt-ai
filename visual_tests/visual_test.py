@@ -6,7 +6,7 @@ CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # 🔧 List of URLs or routes to capture
 ROUTES = {
-    "homepage": "https://localhost:4173/"
+    "homepage": "https://localhost:5173/"
 }
 
 def save_ui_snapshots(commit_hash):
