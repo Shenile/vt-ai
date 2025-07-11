@@ -22,7 +22,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r visual_tests/requirements.txt
           python -m playwright install --with-deps
+      
+      - name: Build frontend
+        working-directory: vi-ai-fe
+        run: |
+          npm ci
+          npm run build
 
+      - name: Serve frontend locally
+        run: |
+          npm install -g http-server
+          http-server ./vi-ai-fe/dist -p 4173 &
+          sleep 5  # Give the server time to boot
+          
       - name: Run visual test and capture multiple page screenshots
         run: |
           echo "Starting visual test for commit $GITHUB_SHA"
