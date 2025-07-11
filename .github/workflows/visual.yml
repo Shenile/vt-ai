@@ -58,7 +58,7 @@ jobs:
           python visual_tests/visual_test.py $GITHUB_SHA
           echo "Capture complete"
 
-      - name: Push all screenshots to visual-baselines branch
+      - name: Push all screenshots and DOM snapshots to visual-baselines branch
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
@@ -71,8 +71,8 @@ jobs:
           git checkout visual-baselines || git checkout -b visual-baselines
 
           mkdir -p baselines/${{ github.sha }}
-          cp ../visual_tests/baseline/${{ github.sha }}/*.png baselines/${{ github.sha }}/
+          cp ../visual_tests/baseline/${{ github.sha }}/* baselines/${{ github.sha }}/
 
           git add baselines/
-          git commit -m "Add baseline screenshots for commit ${{ github.sha }}"
+          git commit -m "Add baseline screenshots + DOM for commit ${{ github.sha }}"
           git push origin visual-baselines
