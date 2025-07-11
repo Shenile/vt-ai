@@ -24,7 +24,7 @@ jobs:
           python -m playwright install --with-deps
       
       - name: Build frontend
-        working-directory: ./vi-ai-fe
+        working-directory: vt-ai-fe
         run: |
           npm ci
           npm run build
