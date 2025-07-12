@@ -1,12 +1,10 @@
-// Commit 9: Move <h1> below buttons for layout shift
+// Commit 10: Change background from white to gray
 
-// Move h1 to below the button code block
 
 
 function App() {
   return (
-    <div className="min-h-screen bg-white p-8 text-gray-800">
-      // Commit 5: Add image under heading
+    <div className="min-h-screen bg-gray-100 p-8 text-gray-800">
       <img
         src="https://via.placeholder.com/150"
         alt="Placeholder"
