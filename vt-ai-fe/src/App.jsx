@@ -7,6 +7,8 @@ function App() {
       <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
         Click Me
       </button>
+      
+      <p className="text-gray-600 mb-4">This is a new paragraph of content.</p>
     </div>
   );
 }
