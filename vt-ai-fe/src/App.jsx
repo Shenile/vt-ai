@@ -1,5 +1,4 @@
-// Commit 6: Changed heading text
-
+// Commit 7: Add second styled button
 
 function App() {
   return (
@@ -11,6 +10,9 @@ function App() {
         alt="Placeholder"
         className="mb-4"
       />
+      <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded ml-4">
+        Secondary
+      </button>
       <p className="text-gray-600 mb-4">This is a new paragraph of content.</p>
     </div>
   );
