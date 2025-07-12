@@ -1,4 +1,4 @@
-// Commit 7: Add second styled button
+// Commit 8: Add card with shadow and border
 
 function App() {
   return (
@@ -10,6 +10,10 @@ function App() {
         alt="Placeholder"
         className="mb-4"
       />
+      <div className="border rounded-xl shadow-md p-4 mb-4">
+        <h2 className="text-xl font-semibold mb-2">Card Title</h2>
+        <p>This is a card component with content.</p>
+      </div>
       <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded ml-4">
         Secondary
       </button>
