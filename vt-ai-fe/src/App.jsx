@@ -1,18 +1,14 @@
-import { useState } from 'react'
+// Commit 1: Base UI with heading and button
+
 function App() {
-
-
   return (
-    <div className='text-lg'>
-        <h1>I am test page.</h1>
-        <p>this is a new commit</p>
-        <p>this is a new commit 2</p> 
-        <p>this is a new commit 3</p>   
-        <p>this is a new commit 4</p>
-        <img src="https://raw.githubusercontent.com/Shenile/vt-ai/visual-baselines/baselines/70df0a1724cc7f6a01c8457dd5d81eb0551c2939/homepage.png" alt="UI Snapshot" />
-
+    <div className="min-h-screen bg-white p-8 text-gray-800">
+      <h1 className="text-3xl font-bold mb-4">Welcome to Visual Diff Test</h1>
+      <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+        Click Me
+      </button>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
