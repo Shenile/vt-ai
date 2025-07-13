@@ -17,12 +17,12 @@ function App() {
 
       {/* Hero */}
       <section className="bg-gray-100 py-16 px-6 text-center">
-        <h2 className="text-4xl font-extrabold mb-4">AI-Powered Visual Testing</h2>
+        <h2 className="text-4xl font-bold mb-4">AI-Powered Visual Testing</h2>
         <p className="text-lg text-gray-600 mb-6">
           Catch UI bugs before users do. Compare, detect, and automate visual testing with intelligence.
         </p>
         
-        <button className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800">
+        <button className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 shadow-sm">
           Get Started
         </button>
       </section>
