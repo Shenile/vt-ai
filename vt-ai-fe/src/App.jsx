@@ -2,7 +2,7 @@ import React from 'react';
 
 function App() {
   return (
-    <div className="bg-white text-gray-800 min-h-screen font-sans">
+    <div className="bg-gray-100 text-gray-800 min-h-screen font-sans">
       {/* Navigation */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -29,15 +29,15 @@ function App() {
 
       {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="p-6 border rounded-2xl shadow hover:shadow-md transition">
+        <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">Perceptual Diff</h3>
           <p className="text-gray-600">Detects layout and pixel changes with deep learning accuracy.</p>
         </div>
-        <div className="p-6 border rounded-2xl shadow hover:shadow-md transition">
+        <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">Semantic Diff</h3>
           <p className="text-gray-600">Understands content changes like text edits or button swaps.</p>
         </div>
-        <div className="p-6 border rounded-2xl shadow hover:shadow-md transition">
+        <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">CI/CD Ready</h3>
           <p className="text-gray-600">Integrates easily into your existing pipeline. Fast, smart, reliable.</p>
         </div>
