@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 function App() {
   return (
@@ -8,9 +8,15 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">VisualDiff AI</h1>
           <nav className="space-x-4">
-            <a href="#" className="text-gray-700 hover:text-black">Home</a>
-            <a href="#" className="text-gray-700 hover:text-black">Docs</a>
-            <a href="#" className="text-gray-700 hover:text-black">GitHub</a>
+            <a href="#" className="text-gray-700 hover:text-black">
+              Home
+            </a>
+            <a href="#" className="text-gray-700 hover:text-black">
+              Docs
+            </a>
+            <a href="#" className="text-gray-700 hover:text-black">
+              GitHub
+            </a>
           </nav>
         </div>
       </header>
@@ -19,39 +25,55 @@ function App() {
       <section className="bg-gray-100 py-16 px-6 text-center">
         <h2 className="text-4xl font-bold mb-4">AI-Powered Visual Testing</h2>
         <p className="text-lg text-gray-600 mb-6">
-          Catch UI bugs before users do. Compare, detect, and automate visual testing with intelligence.
+          Catch UI bugs before users do. Compare, detect, and automate visual
+          testing with intelligence.
         </p>
-        
+
         <button className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800">
           Get Started
         </button>
+
+        {/* New CTA Button */}
+        <div className="mt-4">
+          <button className="bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded hover:bg-blue-50">
+            Learn More
+          </button>
+        </div>
       </section>
 
       {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">Perceptual Diff</h3>
-          <p className="text-gray-600">Detects layout and pixel changes with deep learning accuracy.</p>
+          <p className="text-gray-600">
+            Detects layout and pixel changes with deep learning accuracy.
+          </p>
         </div>
         <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">Semantic Diff</h3>
-          <p className="text-gray-600">Understands content changes like text edits or button swaps.</p>
+          <p className="text-gray-600">
+            Understands content changes like text edits or button swaps.
+          </p>
         </div>
         <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">CI/CD Ready</h3>
-          <p className="text-gray-600">Integrates easily into your existing pipeline. Fast, smart, reliable.</p>
+          <p className="text-gray-600">
+            Integrates easily into your existing pipeline. Fast, smart,
+            reliable.
+          </p>
         </div>
       </section>
 
       {/* Testimonial */}
-      {/* <section className="bg-gray-50 py-12">
+      <section className="bg-gray-50 py-12">
         <div className="max-w-4xl mx-auto text-center">
           <blockquote className="text-xl italic text-gray-700">
-            “VisualDiff AI helped us eliminate 95% of visual bugs before reaching production.”
+            “VisualDiff AI helped us eliminate 95% of visual bugs before
+            reaching production.”
           </blockquote>
           <p className="mt-4 text-gray-500">— Senior QA Engineer, DevCorp</p>
         </div>
-      </section> */}
+      </section>
 
       {/* Footer */}
       <footer className="bg-white border-t mt-12">
