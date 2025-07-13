@@ -2,7 +2,7 @@ import React from 'react';
 
 function App() {
   return (
-    <div className="bg-gray-100 text-gray-800 min-h-screen font-sans">
+    <div className="bg-white text-gray-800 min-h-screen font-sans">
       {/* Navigation */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -17,7 +17,7 @@ function App() {
 
       {/* Hero */}
       <section className="bg-gray-100 py-16 px-6 text-center">
-        <h2 className="text-4xl font-bold mb-4">AI-Powered Visual Testing</h2>
+        <h2 className="text-4xl font-extrabold mb-4">AI-Powered Visual Testing</h2>
         <p className="text-lg text-gray-600 mb-6">
           Catch UI bugs before users do. Compare, detect, and automate visual testing with intelligence.
         </p>
