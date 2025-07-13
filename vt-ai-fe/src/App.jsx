@@ -21,7 +21,8 @@ function App() {
         <p className="text-lg text-gray-600 mb-6">
           Catch UI bugs before users do. Compare, detect, and automate visual testing with intelligence.
         </p>
-        <button className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800">
+        {/* CHANGE 1 : changed button color from black to blue*/}
+        <button className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-gray-800">
           Get Started
         </button>
       </section>
