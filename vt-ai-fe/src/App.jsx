@@ -23,8 +23,7 @@ function App() {
 
       {/* Hero */}
       <section className="bg-gray-100 py-16 px-6 text-center">
-        {/* CHANGE02 heading text */}
-        <h2 className="text-4xl font-bold mb-4">Smart AI for Visual QA</h2>
+        <h2 className="text-4xl font-bold mb-4">AI-Powered Visual Testing</h2>
         <p className="text-lg text-gray-600 mb-6">
           Catch UI bugs before users do. Compare, detect, and automate visual
           testing with intelligence.
@@ -38,15 +37,15 @@ function App() {
       {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="p-6 border rounded shadow hover:shadow-md transition">
-          <h3 className="text-xl font-semibold mb-2">Perceptual Diff</h3>
-          <p className="text-gray-600">
-            Detects layout and pixel changes with deep learning accuracy.
-          </p>
-        </div>
-        <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">Semantic Diff</h3>
           <p className="text-gray-600">
             Understands content changes like text edits or button swaps.
+          </p>
+        </div>
+        <div className="p-6 border rounded shadow hover:shadow-md transition">
+          <h3 className="text-xl font-semibold mb-2">Perceptual Diff</h3>
+          <p className="text-gray-600">
+            Detects layout and pixel changes with deep learning accuracy.
           </p>
         </div>
         <div className="p-6 border rounded shadow hover:shadow-md transition">
