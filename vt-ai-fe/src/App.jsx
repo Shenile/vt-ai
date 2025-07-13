@@ -1,24 +1,64 @@
-// Commit 10: Change background from white to gray
-
-
+import React from 'react';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 p-8 text-gray-800">
-      <img
-        src="https://via.placeholder.com/150"
-        alt="Placeholder"
-        className="mb-4"
-      />
-      <div className="border rounded-xl shadow-md p-4 mb-4">
-        <h2 className="text-xl font-semibold mb-2">Card Title</h2>
-        <p>This is a card component with content.</p>
-      </div>
-      <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded ml-4">
-        Secondary
-      </button>
-      <h1 className="text-3xl font-bold mb-4">Visual Test - Changed Title</h1>
-      <p className="text-gray-600 mb-4">This is a new paragraph of content.</p>
+    <div className="bg-white text-gray-800 min-h-screen font-sans">
+      {/* Navigation */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-xl font-bold">VisualDiff AI</h1>
+          <nav className="space-x-4">
+            <a href="#" className="text-gray-700 hover:text-black">Home</a>
+            <a href="#" className="text-gray-700 hover:text-black">Docs</a>
+            <a href="#" className="text-gray-700 hover:text-black">GitHub</a>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section className="bg-gray-100 py-16 px-6 text-center">
+        <h2 className="text-4xl font-bold mb-4">AI-Powered Visual Testing</h2>
+        <p className="text-lg text-gray-600 mb-6">
+          Catch UI bugs before users do. Compare, detect, and automate visual testing with intelligence.
+        </p>
+        <button className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800">
+          Get Started
+        </button>
+      </section>
+
+      {/* Features */}
+      <section className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="p-6 border rounded shadow hover:shadow-md transition">
+          <h3 className="text-xl font-semibold mb-2">Perceptual Diff</h3>
+          <p className="text-gray-600">Detects layout and pixel changes with deep learning accuracy.</p>
+        </div>
+        <div className="p-6 border rounded shadow hover:shadow-md transition">
+          <h3 className="text-xl font-semibold mb-2">Semantic Diff</h3>
+          <p className="text-gray-600">Understands content changes like text edits or button swaps.</p>
+        </div>
+        <div className="p-6 border rounded shadow hover:shadow-md transition">
+          <h3 className="text-xl font-semibold mb-2">CI/CD Ready</h3>
+          <p className="text-gray-600">Integrates easily into your existing pipeline. Fast, smart, reliable.</p>
+        </div>
+      </section>
+
+      {/* Testimonial */}
+      <section className="bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <blockquote className="text-xl italic text-gray-700">
+            “VisualDiff AI helped us eliminate 95% of visual bugs before reaching production.”
+          </blockquote>
+          <p className="mt-4 text-gray-500">— Senior QA Engineer, DevCorp</p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white border-t mt-12">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between text-sm text-gray-500">
+          <p>© 2025 VisualDiff AI</p>
+          <p>Made with 💻 in India</p>
+        </div>
+      </footer>
     </div>
   );
 }
