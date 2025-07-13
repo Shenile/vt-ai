@@ -32,13 +32,6 @@ function App() {
         <button className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800">
           Get Started
         </button>
-
-        {/* New CTA Button */}
-        <div className="mt-4">
-          <button className="bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded hover:bg-blue-50">
-            Learn More
-          </button>
-        </div>
       </section>
 
       {/* Features */}
@@ -52,9 +45,10 @@ function App() {
         <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">Semantic Diff</h3>
           <p className="text-gray-600">
-            Understands content changes like text edits or button swaps.
+            Detects deep content meaning changes using vision-language models.
           </p>
         </div>
+
         <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">CI/CD Ready</h3>
           <p className="text-gray-600">
