@@ -11,3 +11,45 @@ visual_tests/templates/
 visual_tests/track_gh_workflow.py
 visual_tests/model_wrappers.py
 visual_tests/app.py
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cython debug symbols
+*.pyd
+*.pyo
+
+# Virtual environment folders (customize if needed)
+env/
+venv/
+.venv/
+ENV/
+.ENV/
+
+# IDE and tooling config (optional but recommended)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Test cache
+.pytest_cache/
+.mypy_cache/
+.tox/
+.coverage
+coverage.xml
+htmlcov/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
