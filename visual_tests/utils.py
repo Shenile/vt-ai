@@ -129,7 +129,7 @@ def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
     clean_pycache()
     run_git_command(["checkout", branch], cwd=repo_path)
     run_git_command(["pull", "origin", branch], cwd=repo_path)
-    run_git_command(["pull", "origin", "main"], cwd=repo_path)
+    run_git_command(["checkout", "main"], cwd=repo_path)
 
     print(f"[✓] Synced at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
