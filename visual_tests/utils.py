@@ -1,6 +1,13 @@
 import os
 import json
+import time
+import subprocess
 from playwright.sync_api import sync_playwright, TimeoutError
+from pathlib import Path
+from PIL import Image
+import io
+
+PROJECT_ROOT_PATH = Path(__file__).resolve().parent.parent
 
 def capture_screenshot_and_dom(url, file_name, file_path):
     print(f"Ensuring directory exists: {file_path}")
@@ -34,21 +41,46 @@ def capture_screenshot_and_dom(url, file_name, file_path):
             print(f"Saving screenshot to: {output_path}")
             page.screenshot(path=output_path, full_page=True)
 
-            # DOM snapshot
-            print("Extracting DOM snapshot...")
+            # DOM snapshot with structured tree
+            print("Extracting enhanced DOM snapshot with IDs and children...")
             dom_snapshot = page.evaluate("""() => {
-                return Array.from(document.querySelectorAll('*')).map(el => {
-                    const rect = el.getBoundingClientRect();
+                function getNodeData(node) {
+                    const rect = node.getBoundingClientRect();
+                    if (!node.dataset.vtId) {
+                        node.dataset.vtId = 'node-' + Math.random().toString(36).substr(2, 9);
+                    }
                     return {
-                        tag: el.tagName.toLowerCase(),
-                        text: el.innerText,
-                        x: rect.x,
-                        y: rect.y,
-                        width: rect.width,
-                        height: rect.height
+                        id: node.dataset.vtId,
+                        tag: node.tagName.toLowerCase(),
+                        bbox: [rect.left, rect.top, rect.right, rect.bottom],
+                        children: Array.from(node.children)
+                            .filter(child => {
+                                const r = child.getBoundingClientRect();
+                                return r.width > 0 && r.height > 0;
+                            })
+                            .map(child => {
+                                if (!child.dataset.vtId) {
+                                    child.dataset.vtId = 'node-' + Math.random().toString(36).substr(2, 9);
+                                }
+                                return child.dataset.vtId;
+                            })
                     };
-                });
+                }
+
+                function traverse(node, collected = []) {
+                    if (!(node instanceof Element)) return collected;
+                    const style = window.getComputedStyle(node);
+                    if (style.display === 'none' || node.offsetWidth === 0 || node.offsetHeight === 0) return collected;
+
+                    const data = getNodeData(node);
+                    collected.push(data);
+                    Array.from(node.children).forEach(child => traverse(child, collected));
+                    return collected;
+                }
+
+                return traverse(document.body);
             }""")
+
 
             dom_path = os.path.join(file_path, f"{file_name}_dom.json")
             with open(dom_path, 'w') as f:
@@ -61,3 +93,174 @@ def capture_screenshot_and_dom(url, file_name, file_path):
         print("TimeoutError: Page load timed out.")
     except Exception as e:
         print(f"Exception during capture: {e}")
+
+def run_git_command(args, cwd):
+    try:
+        result = subprocess.run(
+            ["git"] + args,
+            cwd=cwd,
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        print(result.stdout.strip())
+    except subprocess.CalledProcessError as e:
+        print(f"[ERROR] {' '.join(args)}\n{e.stderr.strip()}")
+
+def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
+    """
+    Syncs a Git branch by checking it out and pulling the latest changes.
+
+    Args:
+        branch (str): Name of the branch to sync (e.g., "visual-baselines")
+        repo_path (str or Path): Path to the local Git repo
+        project_root_path (str or Path, optional): Used for logging/debugging
+    """
+    location = project_root_path or repo_path
+    print(f"Syncing '{branch}' branch at {location}")
+    
+    run_git_command(["checkout", branch], cwd=repo_path)
+    run_git_command(["pull", "origin", branch], cwd=repo_path)
+
+    print(f"[✓] Synced at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+def get_current_pair_in_memory(branch="visual-baselines", page_name="page"):
+    """
+    Returns the previous and current baseline PNG + DOM data from the last 2 commits.
+    Output:
+        {
+            "prev": {"image": <PIL.Image>, "dom": <list>},
+            "curr": {"image": <PIL.Image>, "dom": <list>}
+        }
+    """
+    print(f"Syncing '{branch}' and loading last 2 baseline commits...")
+
+    baseline_path = PROJECT_ROOT_PATH / "baselines"
+
+    # Step 1: Sync branch
+    sync_branch(branch, repo_path=PROJECT_ROOT_PATH)
+
+    # Step 2: Get last 2 commit hashes with valid data
+    try:
+        log_result = subprocess.run(
+            ["git", "log", branch, "--pretty=format:%H"],
+            cwd=PROJECT_ROOT_PATH,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        commits = log_result.stdout.strip().splitlines()
+    except subprocess.CalledProcessError as e:
+        print("[✗] Failed to get commit logs:", e.stderr.strip())
+        return
+
+    valid_commits = [c for c in commits if (baseline_path / c).exists()]
+    if len(valid_commits) < 2:
+        print("[!] Not enough commits with data in baselines/")
+        return
+
+    latest, previous = valid_commits[0], valid_commits[1]
+    print(f"✔ Selected commits:\n   prev = {previous}\n   curr = {latest}")
+
+    def load_commit(commit_hash):
+        commit_dir = baseline_path / commit_hash
+        img_path = commit_dir / f"{page_name}.png"
+        dom_path = commit_dir / f"{page_name}_dom.json"
+
+        # Load image
+        with open(img_path, 'rb') as f:
+            img = Image.open(io.BytesIO(f.read())).convert("RGB")
+
+        # Load DOM
+        with open(dom_path, 'r', encoding='utf-8') as f:
+            dom = json.load(f)
+
+        return {"image": img, "dom": dom}
+
+    return {
+        "prev": load_commit(previous),
+        "curr": load_commit(latest)
+    }
+
+def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
+                lpips_thresh=0.03, clip_thresh=0.98, min_size=20):
+    """
+    Detects and highlights changed UI regions and returns full prediction metadata.
+
+    Args:
+        curr_pair, prev_pair: dicts with keys {"image": PIL.Image, "dom": list}
+        lpips_model, clip_model: objects with `compute_distance()` and `compute_similarity()` methods
+        lpips_thresh, clip_thresh: thresholds for flagging a change
+        min_size: minimum region size to evaluate
+
+    Returns:
+        {
+            "highlighted_prev": <PIL.Image>,
+            "highlighted_curr": <PIL.Image>,
+            "scores": pd.DataFrame of LPIPS/CLIP per region,
+            "segments": list of dicts per region
+        }
+    """
+    from PIL import ImageDraw
+    import pandas as pd
+
+    prev_img = prev_pair["image"].copy()
+    curr_img = curr_pair["image"].copy()
+    prev_draw = ImageDraw.Draw(prev_img)
+    curr_draw = ImageDraw.Draw(curr_img)
+
+    prev_dom = prev_pair["dom"]
+    curr_dom = curr_pair["dom"]
+
+    results = []
+    segments = []
+
+    for el_prev, el_curr in zip(prev_dom, curr_dom):
+        tag = el_prev.get("tag")
+        if tag != el_curr.get("tag"):
+            continue
+        try:
+            x1, y1, x2, y2 = map(int, el_prev["bbox"])
+            w, h = x2 - x1, y2 - y1
+            if w < min_size or h < min_size:
+                continue
+
+            crop_prev = prev_pair["image"].crop((x1, y1, x2, y2))
+            crop_curr = curr_pair["image"].crop((x1, y1, x2, y2))
+
+            lp_score = lpips_model.compute_distance(crop_prev, crop_curr)
+            clip_score = clip_model.compute_similarity(crop_prev, crop_curr)
+
+            is_changed = (lp_score > lpips_thresh) or (clip_score < clip_thresh)
+            if is_changed:
+                prev_draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
+                curr_draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
+
+            results.append({
+                "tag": tag,
+                "bbox": (x1, y1, x2, y2),
+                "LPIPS": round(lp_score, 4),
+                "CLIP": round(clip_score, 4),
+                "LPIPS_Detects_Change": int(lp_score > lpips_thresh),
+                "CLIP_Detects_Change": int(clip_score < clip_thresh),
+                "Change_Flag": int(is_changed)
+            })
+
+            segments.append({
+                "tag": tag,
+                "bbox": (x1, y1, x2, y2),
+                "prev_crop": crop_prev,
+                "curr_crop": crop_curr
+            })
+
+        except Exception as e:
+            print(f"[!] Skipped region due to error: {e}")
+            continue
+
+    df_scores = pd.DataFrame(results)
+    return {
+        "highlighted_prev": prev_img,
+        "highlighted_curr": curr_img,
+        "scores": df_scores,
+        "segments": segments
+    }
