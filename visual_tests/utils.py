@@ -52,41 +52,17 @@ def capture_screenshot_and_dom(url, file_name, file_path):
             # DOM snapshot with structured tree
             print("Extracting enhanced DOM snapshot with IDs and children...")
             dom_snapshot = page.evaluate("""() => {
-                function getNodeData(node) {
-                    const rect = node.getBoundingClientRect();
-                    if (!node.dataset.vtId) {
-                        node.dataset.vtId = 'node-' + Math.random().toString(36).substr(2, 9);
-                    }
+                return Array.from(document.querySelectorAll('*')).map(el => {
+                    const rect = el.getBoundingClientRect();
                     return {
-                        id: node.dataset.vtId,
-                        tag: node.tagName.toLowerCase(),
-                        bbox: [rect.left, rect.top, rect.right, rect.bottom],
-                        children: Array.from(node.children)
-                            .filter(child => {
-                                const r = child.getBoundingClientRect();
-                                return r.width > 0 && r.height > 0;
-                            })
-                            .map(child => {
-                                if (!child.dataset.vtId) {
-                                    child.dataset.vtId = 'node-' + Math.random().toString(36).substr(2, 9);
-                                }
-                                return child.dataset.vtId;
-                            })
+                        tag: el.tagName.toLowerCase(),
+                        text: el.innerText,
+                        x: rect.x,
+                        y: rect.y,
+                        width: rect.width,
+                        height: rect.height
                     };
-                }
-
-                function traverse(node, collected = []) {
-                    if (!(node instanceof Element)) return collected;
-                    const style = window.getComputedStyle(node);
-                    if (style.display === 'none' || node.offsetWidth === 0 || node.offsetHeight === 0) return collected;
-
-                    const data = getNodeData(node);
-                    collected.push(data);
-                    Array.from(node.children).forEach(child => traverse(child, collected));
-                    return collected;
-                }
-
-                return traverse(document.body);
+                });
             }""")
 
 
@@ -230,23 +206,6 @@ def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
 
 def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
                 lpips_thresh=0.03, clip_thresh=0.98, min_size=20):
-    """
-    Detects and highlights changed UI regions and returns full prediction metadata.
-
-    Args:
-        curr_pair, prev_pair: dicts with keys {"image": PIL.Image, "dom": list}
-        lpips_model, clip_model: objects with `compute_distance()` and `compute_similarity()` methods
-        lpips_thresh, clip_thresh: thresholds for flagging a change
-        min_size: minimum region size to evaluate
-
-    Returns:
-        {
-            "highlighted_prev": <PIL.Image>,
-            "highlighted_curr": <PIL.Image>,
-            "scores": pd.DataFrame of LPIPS/CLIP per region,
-            "segments": list of dicts per region
-        }
-    """
     from PIL import ImageDraw
     import pandas as pd
 
@@ -262,29 +221,33 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
     segments = []
 
     for el_prev, el_curr in zip(prev_dom, curr_dom):
-        tag = el_prev.get("tag")
-        if tag != el_curr.get("tag"):
+        if el_prev.get("tag") != el_curr.get("tag"):
             continue
+
         try:
-            x1, y1, x2, y2 = map(int, el_prev["bbox"])
-            w, h = x2 - x1, y2 - y1
+            x = int(el_prev["x"])
+            y = int(el_prev["y"])
+            w = int(el_prev["width"])
+            h = int(el_prev["height"])
             if w < min_size or h < min_size:
                 continue
 
-            crop_prev = prev_pair["image"].crop((x1, y1, x2, y2))
-            crop_curr = curr_pair["image"].crop((x1, y1, x2, y2))
+            crop_prev = prev_img.crop((x, y, x + w, y + h))
+            crop_curr = curr_img.crop((x, y, x + w, y + h))
 
             lp_score = lpips_model.compute_distance(crop_prev, crop_curr)
             clip_score = clip_model.compute_similarity(crop_prev, crop_curr)
 
             is_changed = (lp_score > lpips_thresh) or (clip_score < clip_thresh)
+
             if is_changed:
-                prev_draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
-                curr_draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
+                prev_draw.rectangle([x, y, x + w, y + h], outline="red", width=2)
+                curr_draw.rectangle([x, y, x + w, y + h], outline="red", width=2)
 
             results.append({
-                "tag": tag,
-                "bbox": (x1, y1, x2, y2),
+                "tag": el_prev["tag"],
+                "text": el_prev.get("text", ""),
+                "bbox": (x, y, x + w, y + h),
                 "LPIPS": round(lp_score, 4),
                 "CLIP": round(clip_score, 4),
                 "LPIPS_Detects_Change": int(lp_score > lpips_thresh),
@@ -293,8 +256,8 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
             })
 
             segments.append({
-                "tag": tag,
-                "bbox": (x1, y1, x2, y2),
+                "tag": el_prev["tag"],
+                "bbox": (x, y, x + w, y + h),
                 "prev_crop": crop_prev,
                 "curr_crop": crop_curr
             })
@@ -304,19 +267,18 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
             continue
 
     df_scores = pd.DataFrame(results)
-    # ➕ ADD SUMMARY SECTION
-    total = len(df_scores)
-    changed = df_scores["Change_Flag"].sum() if total > 0 else 0
     summary = {
-        "total_regions": total,
-        "changed_regions": int(changed),
-        "change_percent": round((changed / total) * 100, 2) if total else 0.0
+        "total_regions": len(df_scores),
+        "changed_regions": int(df_scores["Change_Flag"].sum()) if not df_scores.empty else 0,
+        "change_percent": round(df_scores["Change_Flag"].mean() * 100, 2) if not df_scores.empty else 0.0
     }
+
+    print(f"[✓] Compared {len(df_scores)} DOM regions. Changes: {summary['changed_regions']}")
 
     return {
         "highlighted_prev": prev_img,
         "highlighted_curr": curr_img,
         "scores": df_scores,
         "segments": segments,
-         "summary": summary
+        "summary": summary
     }
