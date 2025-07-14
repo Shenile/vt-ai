@@ -30,7 +30,7 @@ function App() {
       {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="p-6 border rounded shadow hover:shadow-md transition">
-          <h3 className="text-xl font-semibold mb-2">Perceptual Diff</h3>
+          <h3 className="text-xl font-semibold mb-2">Perceptual Differentyddfhfj</h3>
           <p className="text-gray-600">Detects layout and pixel changes with deep learning accuracy.</p>
         </div>
         <div className="p-6 border rounded shadow hover:shadow-md transition">
