@@ -135,14 +135,11 @@ def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
     except subprocess.CalledProcessError as e:
         print("[✗] Failed to get commit list:", e.stderr.strip())
         return None
-    
-    print(commits)
 
     # Check which of these commits actually contain the baseline files
     def commit_has_required_files(commit_hash):
         for ext in [".png", "_dom.json"]:
             path_in_git = f"visual-baselines:baselines/{commit_hash}/{page_name}{ext}"
-            print(path_in_git)
             try:
                 res = subprocess.run(
                     ["git", "show", path_in_git],
@@ -150,13 +147,11 @@ def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
                     capture_output=True,
                     check=True
                 )
-                print(res)
             except subprocess.CalledProcessError:
                 return False
         return True
 
     valid_commits = [c for c in commits if commit_has_required_files(c)]
-    print(valid_commits)
     if len(valid_commits) < 2:
         print("[!] Not enough valid commits with baseline files in visual-baselines.")
         return None
