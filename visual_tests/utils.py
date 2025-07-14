@@ -149,7 +149,7 @@ def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
     try:
         # Get last 2 commit hashes from visual-baselines
         result = subprocess.run(
-            ["git", "rev-list", branch, "--max-count=10"],
+            ["git", "rev-list", branch, "--max-count=10", "main"],
             cwd=PROJECT_ROOT_PATH,
             capture_output=True,
             text=True,
@@ -189,7 +189,7 @@ def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
     print(f"[✓] Using commits:\n    Previous: {prev}\n    Current : {curr}")
 
     def load_image_from_git(commit, filename):
-        path = f"{commit}:baselines/{commit}/{filename}"
+        path = f"visual-baselines:baselines/{commit}/{filename}"
         try:
             result = subprocess.run(
                 ["git", "show", path],
@@ -203,7 +203,7 @@ def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
             return None
 
     def load_json_from_git(commit, filename):
-        path = f"{commit}:baselines/{commit}/{filename}"
+        path = f"visual-baselines:baselines/{commit}/{filename}"
         try:
             result = subprocess.run(
                 ["git", "show", path],
@@ -304,9 +304,19 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
             continue
 
     df_scores = pd.DataFrame(results)
+    # ➕ ADD SUMMARY SECTION
+    total = len(df_scores)
+    changed = df_scores["Change_Flag"].sum() if total > 0 else 0
+    summary = {
+        "total_regions": total,
+        "changed_regions": int(changed),
+        "change_percent": round((changed / total) * 100, 2) if total else 0.0
+    }
+
     return {
         "highlighted_prev": prev_img,
         "highlighted_curr": curr_img,
         "scores": df_scores,
-        "segments": segments
+        "segments": segments,
+         "summary": summary
     }
