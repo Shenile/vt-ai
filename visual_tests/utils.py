@@ -129,6 +129,7 @@ def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
     clean_pycache()
     run_git_command(["checkout", branch], cwd=repo_path)
     run_git_command(["pull", "origin", branch], cwd=repo_path)
+    run_git_command(["pull", "origin", "main"], cwd=repo_path)
 
     print(f"[✓] Synced at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -145,8 +146,8 @@ def get_current_pair_in_memory(branch="visual-baselines", page_name="page"):
 
     baseline_path = PROJECT_ROOT_PATH / "baselines"
 
-    # Step 1: Sync branch
-    sync_branch(branch, repo_path=PROJECT_ROOT_PATH)
+    # # Step 1: Sync branch
+    # sync_branch(branch, repo_path=PROJECT_ROOT_PATH)
 
     # Step 2: Get last 2 commit hashes with valid data
     try:
