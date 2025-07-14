@@ -133,62 +133,99 @@ def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
 
     print(f"[✓] Synced at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-def get_current_pair_in_memory(branch="visual-baselines", page_name="page"):
+def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
     """
-    Returns the previous and current baseline PNG + DOM data from the last 2 commits.
-    Output:
+    Reads PNG and DOM JSON from the last 2 commits in visual-baselines *without checking out the branch*.
+    Uses `git show` to read content directly from the branch tree.
+
+    Returns:
         {
-            "prev": {"image": <PIL.Image>, "dom": <list>},
-            "curr": {"image": <PIL.Image>, "dom": <list>}
+            "prev": {"image": PIL.Image, "dom": list},
+            "curr": {"image": PIL.Image, "dom": list}
         }
     """
-    print(f"Syncing '{branch}' and loading last 2 baseline commits...")
+    print(f"[•] Reading last 2 commits from '{branch}'...")
 
-    baseline_path = PROJECT_ROOT_PATH / "baselines"
-
-    # # Step 1: Sync branch
-    # sync_branch(branch, repo_path=PROJECT_ROOT_PATH)
-
-    # Step 2: Get last 2 commit hashes with valid data
     try:
-        log_result = subprocess.run(
-            ["git", "log", branch, "--pretty=format:%H"],
+        # Get last 2 commit hashes from visual-baselines
+        result = subprocess.run(
+            ["git", "rev-list", branch, "--max-count=10"],
             cwd=PROJECT_ROOT_PATH,
             capture_output=True,
             text=True,
             check=True
         )
-        commits = log_result.stdout.strip().splitlines()
+        commits = result.stdout.strip().splitlines()
     except subprocess.CalledProcessError as e:
-        print("[✗] Failed to get commit logs:", e.stderr.strip())
-        return
+        print("[✗] Failed to get commit list:", e.stderr.strip())
+        return None
+    
+    print(commits)
 
-    valid_commits = [c for c in commits if (baseline_path / c).exists()]
+    # Check which of these commits actually contain the baseline files
+    def commit_has_required_files(commit_hash):
+        for ext in [".png", "_dom.json"]:
+            path_in_git = f"visual-baselines:baselines/{commit_hash}/{page_name}{ext}"
+            print(path_in_git)
+            try:
+                res = subprocess.run(
+                    ["git", "show", path_in_git],
+                    cwd=PROJECT_ROOT_PATH,
+                    capture_output=True,
+                    check=True
+                )
+                print(res)
+            except subprocess.CalledProcessError:
+                return False
+        return True
+
+    valid_commits = [c for c in commits if commit_has_required_files(c)]
+    print(valid_commits)
     if len(valid_commits) < 2:
-        print("[!] Not enough commits with data in baselines/")
-        return
+        print("[!] Not enough valid commits with baseline files in visual-baselines.")
+        return None
 
-    latest, previous = valid_commits[0], valid_commits[1]
-    print(f"✔ Selected commits:\n   prev = {previous}\n   curr = {latest}")
+    curr, prev = valid_commits[0], valid_commits[1]
+    print(f"[✓] Using commits:\n    Previous: {prev}\n    Current : {curr}")
 
-    def load_commit(commit_hash):
-        commit_dir = baseline_path / commit_hash
-        img_path = commit_dir / f"{page_name}.png"
-        dom_path = commit_dir / f"{page_name}_dom.json"
+    def load_image_from_git(commit, filename):
+        path = f"{commit}:baselines/{commit}/{filename}"
+        try:
+            result = subprocess.run(
+                ["git", "show", path],
+                cwd=PROJECT_ROOT_PATH,
+                capture_output=True,
+                check=True
+            )
+            return Image.open(io.BytesIO(result.stdout)).convert("RGB")
+        except subprocess.CalledProcessError as e:
+            print(f"[✗] Could not read image from {path}:", e.stderr.strip())
+            return None
 
-        # Load image
-        with open(img_path, 'rb') as f:
-            img = Image.open(io.BytesIO(f.read())).convert("RGB")
-
-        # Load DOM
-        with open(dom_path, 'r', encoding='utf-8') as f:
-            dom = json.load(f)
-
-        return {"image": img, "dom": dom}
+    def load_json_from_git(commit, filename):
+        path = f"{commit}:baselines/{commit}/{filename}"
+        try:
+            result = subprocess.run(
+                ["git", "show", path],
+                cwd=PROJECT_ROOT_PATH,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return json.loads(result.stdout)
+        except subprocess.CalledProcessError as e:
+            print(f"[✗] Could not read JSON from {path}:", e.stderr.strip())
+            return None
 
     return {
-        "prev": load_commit(previous),
-        "curr": load_commit(latest)
+        "prev": {
+            "image": load_image_from_git(prev, f"{page_name}.png"),
+            "dom": load_json_from_git(prev, f"{page_name}_dom.json")
+        },
+        "curr": {
+            "image": load_image_from_git(curr, f"{page_name}.png"),
+            "dom": load_json_from_git(curr, f"{page_name}_dom.json")
+        }
     }
 
 def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
