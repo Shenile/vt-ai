@@ -6,8 +6,16 @@ from playwright.sync_api import sync_playwright, TimeoutError
 from pathlib import Path
 from PIL import Image
 import io
+import shutil
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parent.parent
+import shutil
+
+def clean_pycache():
+    pycache_dir = PROJECT_ROOT_PATH / "visual_tests" / "__pycache__"
+    if pycache_dir.exists():
+        print(f"Cleaning up: {pycache_dir}")
+        shutil.rmtree(pycache_dir, ignore_errors=True)
 
 def capture_screenshot_and_dom(url, file_name, file_path):
     print(f"Ensuring directory exists: {file_path}")
@@ -118,7 +126,7 @@ def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
     """
     location = project_root_path or repo_path
     print(f"Syncing '{branch}' branch at {location}")
-    
+    clean_pycache()
     run_git_command(["checkout", branch], cwd=repo_path)
     run_git_command(["pull", "origin", branch], cwd=repo_path)
 
