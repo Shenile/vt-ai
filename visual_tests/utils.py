@@ -3,7 +3,6 @@ import time
 import subprocess
 from pathlib import Path
 from PIL import Image
-import io
 import shutil
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parent.parent
@@ -13,8 +12,6 @@ def clean_pycache():
     if pycache_dir.exists():
         print(f"Cleaning up: {pycache_dir}")
         shutil.rmtree(pycache_dir, ignore_errors=True)
-
-
 
 def run_git_command(args, cwd):
     try:
@@ -46,96 +43,6 @@ def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
     run_git_command(["checkout", "main"], cwd=repo_path)
 
     print(f"[✓] Synced at {time.strftime('%Y-%m-%d %H:%M:%S')}")
-
-# def get_current_pair_in_memory(branch="visual-baselines", page_name="homepage"):
-#     """
-#     Reads PNG and DOM JSON from the last 2 commits in visual-baselines *without checking out the branch*.
-#     Uses `git show` to read content directly from the branch tree.
-
-#     Returns:
-#         {
-#             "prev": {"image": PIL.Image, "dom": list},
-#             "curr": {"image": PIL.Image, "dom": list}
-#         }
-#     """
-#     print(f"[•] Reading last 2 commits from '{branch}'...")
-
-#     try:
-#         # Get last 2 commit hashes from visual-baselines
-#         result = subprocess.run(
-#             ["git", "rev-list", branch, "--max-count=10", "main"],
-#             cwd=PROJECT_ROOT_PATH,
-#             capture_output=True,
-#             text=True,
-#             check=True
-#         )
-#         commits = result.stdout.strip().splitlines()
-#     except subprocess.CalledProcessError as e:
-#         print("[✗] Failed to get commit list:", e.stderr.strip())
-#         return None
-
-#     # Check which of these commits actually contain the baseline files
-#     def commit_has_required_files(commit_hash):
-#         for ext in [".png", "_dom.json"]:
-#             path_in_git = f"visual-baselines:baselines/{commit_hash}/{page_name}{ext}"
-#             try:
-#                 res = subprocess.run(
-#                     ["git", "show", path_in_git],
-#                     cwd=PROJECT_ROOT_PATH,
-#                     capture_output=True,
-#                     check=True
-#                 )
-#             except subprocess.CalledProcessError:
-#                 return False
-#         return True
-
-#     valid_commits = [c for c in commits if commit_has_required_files(c)]
-#     if len(valid_commits) < 2:
-#         print("[!] Not enough valid commits with baseline files in visual-baselines.")
-#         return None
-
-#     curr, prev = valid_commits[0], valid_commits[1]
-#     print(f"[✓] Using commits:\n    Previous: {prev}\n    Current : {curr}")
-
-#     def load_image_from_git(commit, filename):
-#         path = f"visual-baselines:baselines/{commit}/{filename}"
-#         try:
-#             result = subprocess.run(
-#                 ["git", "show", path],
-#                 cwd=PROJECT_ROOT_PATH,
-#                 capture_output=True,
-#                 check=True
-#             )
-#             return Image.open(io.BytesIO(result.stdout)).convert("RGB")
-#         except subprocess.CalledProcessError as e:
-#             print(f"[✗] Could not read image from {path}:", e.stderr.strip())
-#             return None
-
-#     def load_json_from_git(commit, filename):
-#         path = f"visual-baselines:baselines/{commit}/{filename}"
-#         try:
-#             result = subprocess.run(
-#                 ["git", "show", path],
-#                 cwd=PROJECT_ROOT_PATH,
-#                 capture_output=True,
-#                 text=True,
-#                 check=True
-#             )
-#             return json.loads(result.stdout)
-#         except subprocess.CalledProcessError as e:
-#             print(f"[✗] Could not read JSON from {path}:", e.stderr.strip())
-#             return None
-
-#     return {
-#         "prev": {
-#             "image": load_image_from_git(prev, f"{page_name}.png"),
-#             "dom": load_json_from_git(prev, f"{page_name}_dom.json")
-#         },
-#         "curr": {
-#             "image": load_image_from_git(curr, f"{page_name}.png"),
-#             "dom": load_json_from_git(curr, f"{page_name}_dom.json")
-#         }
-#     }
 
 SCRIPT_PATH = Path(__file__).resolve().parent
 BASELINE_PATH = SCRIPT_PATH / "baseline"
@@ -205,6 +112,11 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
     from PIL import ImageDraw
     import pandas as pd
 
+    def is_bbox_contained(bigger, smaller):
+        x1_b, y1_b, x2_b, y2_b = bigger
+        x1_s, y1_s, x2_s, y2_s = smaller
+        return x1_b <= x1_s and y1_b <= y1_s and x2_b >= x2_s and y2_b >= y2_s
+
     prev_img = prev_pair["image"].copy()
     curr_img = curr_pair["image"].copy()
     prev_draw = ImageDraw.Draw(prev_img)
@@ -236,10 +148,6 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
 
             is_changed = (lp_score > lpips_thresh) or (clip_score < clip_thresh)
 
-            if is_changed:
-                prev_draw.rectangle([x, y, x + w, y + h], outline="red", width=2)
-                curr_draw.rectangle([x, y, x + w, y + h], outline="red", width=2)
-
             results.append({
                 "tag": el_prev["tag"],
                 "text": el_prev.get("text", ""),
@@ -263,6 +171,37 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
             continue
 
     df_scores = pd.DataFrame(results)
+
+    # --- containment filter (keep leaves) ---
+        # --- Deduplicate parent containers if child is already flagged ---
+    changed = [r for r in results if r["Change_Flag"] == 1]
+
+    # Sort by area (smallest first)
+    changed_sorted = sorted(changed, key=lambda r: (r["bbox"][2] - r["bbox"][0]) * (r["bbox"][3] - r["bbox"][1]))
+
+    suppressed = set()
+    for i, inner in enumerate(changed_sorted):
+        xi1, yi1, xi2, yi2 = inner["bbox"]
+        for j, outer in enumerate(changed_sorted[i+1:], start=i+1):
+            xo1, yo1, xo2, yo2 = outer["bbox"]
+
+            # Check if inner is fully inside outer
+            if xo1 <= xi1 and yo1 <= yi1 and xo2 >= xi2 and yo2 >= yi2:
+                suppressed.add(j)
+
+    for idx in suppressed:
+        results_idx = results.index(changed_sorted[idx])
+        results[results_idx]["Change_Flag"] = 0
+        results[results_idx]["LPIPS_Detects_Change"] = 0
+        results[results_idx]["CLIP_Detects_Change"] = 0
+
+
+    # Draw only filtered changes
+    for i, row in df_scores[df_scores["Change_Flag"] == 1].iterrows():
+        x1, y1, x2, y2 = row["bbox"]
+        prev_draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
+        curr_draw.rectangle([x1, y1, x2, y2], outline="red", width=2)
+
     summary = {
         "total_regions": len(df_scores),
         "changed_regions": int(df_scores["Change_Flag"].sum()) if not df_scores.empty else 0,
@@ -278,5 +217,3 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
         "segments": segments,
         "summary": summary
     }
-
-
