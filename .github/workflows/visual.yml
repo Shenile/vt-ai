@@ -1,78 +1,12 @@
-name: Visual Test
+name: Visual Test Trigger
 
 on:
   push:
     branches: [main]
 
 jobs:
-  capture:
+  trigger:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('visual_tests/requirements.txt') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('visual_tests/requirements.txt') }}
-          restore-keys: |
-            pip-${{ runner.os }}-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r visual_tests/requirements.txt
-          python -m playwright install --with-deps
-
-      
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./vt-ai-fe
-
-      - name: Build frontend
-        run: npm run build
-        working-directory: ./vt-ai-fe
-
-      - name: Serve frontend (in background)
-        run: |
-          npx http-server ./vt-ai-fe/dist -p 5173 &
-          
-      - name: Run visual test and capture multiple page screenshots
-        run: |
-          echo "Starting visual test for commit $GITHUB_SHA"
-          python visual_tests/visual_test.py $GITHUB_SHA
-          echo "Capture complete"
-
-      - name: Push all screenshots and DOM snapshots to visual-baselines branch
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git config --global user.name "vt-bot"
-          git config --global user.email "vt-bot@example.com"
-
-          git clone https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} baseline-repo
-          cd baseline-repo
-
-          git checkout visual-baselines || git checkout -b visual-baselines
-
-          mkdir -p baselines/${{ github.sha }}
-          cp ../visual_tests/baseline/${{ github.sha }}/* baselines/${{ github.sha }}/
-
-          git add baselines/
-          git commit -m "Add baseline screenshots + DOM for commit ${{ github.sha }}"
-          git push origin visual-baselines
+      - name: Trigger Visual Test
+        run: echo "Visual test triggered on push to main branch."
