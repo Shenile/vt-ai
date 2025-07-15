@@ -53,7 +53,7 @@ function App() {
           <blockquote className="text-xl italic text-gray-700">
             “VisualDiff AI helped us eliminate 95% of visual bugs before reaching production.”
           </blockquote>
-          <p className="mt-4 text-gray-500">— Senior QA Engineer, DevCorp</p>
+          <p className="mt-4 text-gray-500">      — Senior QA Engineer, DevCorp</p>
         </div>
       </section>
 
