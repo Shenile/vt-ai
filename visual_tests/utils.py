@@ -2,7 +2,7 @@ import json
 import time
 import subprocess
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageChops
 import shutil
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parent.parent
@@ -217,3 +217,23 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
         "segments": segments,
         "summary": summary
     }
+
+
+def pixel_diff():
+    pairs = get_current_pair_in_memory()
+    if not pairs:
+        print("[✗] Could not fetch image pair.")
+        return
+
+    image_a = pairs["prev"]["image"]
+    image_b = pairs["curr"]["image"]
+
+    # Ensure both images are the same size
+    if image_a.size != image_b.size:
+        print("[!] Image sizes do not match.")
+        return
+
+    diff = ImageChops.difference(image_a, image_b)
+    diff.show()  
+    # diff.save("pixel_diff_result.png")
+    # print("[✓] Pixel diff generated and saved.")
