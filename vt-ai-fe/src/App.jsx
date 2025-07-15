@@ -27,6 +27,10 @@ function App() {
         </button>
       </section>
 
+      <section>
+        <img src="https://i.pinimg.com/474x/45/4f/ea/454feaa66290a90af0331597793a71ef.jpg" alt="" />
+      </section>
+
       {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="p-6 border rounded shadow hover:shadow-md transition">
