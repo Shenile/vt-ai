@@ -58,7 +58,7 @@ function App() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-12">
+      <footer className="bg-red-100 border-t mt-12">
         <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between text-sm text-gray-500">
           <p>© 2025 VisualDiff AI</p>
           <p>Made with 💻 in India</p>
