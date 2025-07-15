@@ -11,6 +11,7 @@ visual_tests/templates/
 visual_tests/track_gh_workflow.py
 visual_tests/model_wrappers.py
 visual_tests/app.py
+visual_tests/baseline/
 
 
 # Byte-compiled / optimized / DLL files
