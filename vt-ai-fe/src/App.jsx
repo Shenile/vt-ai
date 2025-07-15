@@ -43,7 +43,7 @@ function App() {
         </div>
         <div className="p-6 border rounded shadow hover:shadow-md transition">
           <h3 className="text-xl font-semibold mb-2">CI/CD Ready</h3>
-          <p className="text-gray-600">Raaja naan raaja en pettaikendrumey raaja.</p>
+          <p className="text-gray-600">to prepare the test cases for ci.</p>
         </div>
       </section>
 
