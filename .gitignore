@@ -8,7 +8,7 @@ __pycache__/
 master/
 env/
 visual_tests/templates/
-visual_tests/track_gh_workflow.py
+visual_tests/github_webhook.py
 visual_tests/model_wrappers.py
 visual_tests/app.py
 visual_tests/baseline/
