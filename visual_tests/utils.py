@@ -139,65 +139,65 @@ def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
 
 SCRIPT_PATH = Path(__file__).resolve().parent
 BASELINE_PATH = SCRIPT_PATH / "baseline"
+PROJECT_ROOT = SCRIPT_PATH.parent
 
-def get_current_pair_in_memory(page_name="homepage"):
-    """
-    Reads PNG and DOM JSON from the last 2 subdirectories in the local 'baseline' directory.
+def get_git_commits(max_count=10):
+    try:
+        result = subprocess.run(
+            ["git", "rev-list", "main", f"--max-count={max_count}"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout.strip().splitlines()
+    except subprocess.CalledProcessError as e:
+        print(f"[✗] Failed to get commit list: {e.stderr.strip()}")
+        return []
 
-    Returns:
-        {
-            "prev": {"image": PIL.Image, "dom": list},
-            "curr": {"image": PIL.Image, "dom": list}
-        }
-    """
-    print(f"[•] Scanning baseline directory: {BASELINE_PATH}")
+def get_current_pair_in_memory(page_name="test_home_page"):
+    print(f"[•] Looking for valid baselines in: {BASELINE_PATH}")
 
-    if not BASELINE_PATH.exists():
-        print("[✗] Baseline directory does not exist.")
+    commits = get_git_commits(max_count=15)
+    if not commits:
         return None
 
-    # List all subdirectories sorted by commit timestamp (directory names = commit hashes)
-    commit_dirs = sorted(
-        [d for d in BASELINE_PATH.iterdir() if d.is_dir()],
-        key=lambda d: d.stat().st_mtime,
-        reverse=True
-    )
+    valid = []
+    for commit in commits:
+        commit_dir = BASELINE_PATH / commit
+        img_file = commit_dir / f"{page_name}.png"
+        json_file = commit_dir / f"{page_name}_dom.json"
+        if img_file.exists() and json_file.exists():
+            valid.append(commit)
+        if len(valid) == 2:
+            break
 
-    if len(commit_dirs) < 2:
-        print("[!] Not enough baseline commits found.")
+    if len(valid) < 2:
+        print("[!] Not enough valid baseline commit folders.")
         return None
 
-    curr_dir = commit_dirs[0]
-    prev_dir = commit_dirs[1]
+    curr_commit, prev_commit = valid[0], valid[1]
 
-    print(f"[✓] Using baseline commits:\n    Previous: {prev_dir.name}\n    Current : {curr_dir.name}")
+    def load_image(commit_hash):
+        return Image.open(BASELINE_PATH / commit_hash / f"{page_name}.png").convert("RGB")
 
-    def load_image(commit_dir):
-        path = commit_dir / f"{page_name}.png"
-        if path.exists():
-            return Image.open(path).convert("RGB")
-        else:
-            print(f"[✗] Image not found: {path}")
-            return None
+    def load_json(commit_hash):
+        with open(BASELINE_PATH / commit_hash / f"{page_name}_dom.json", "r", encoding="utf-8") as f:
+            return json.load(f)
 
-    def load_json(commit_dir):
-        path = commit_dir / f"{page_name}_dom.json"
-        if path.exists():
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        else:
-            print(f"[✗] JSON not found: {path}")
-            return None
+    print(f"[✓] Using baseline commits:\n    Previous: {prev_commit}\n    Current : {curr_commit}")
 
     return {
         "prev": {
-            "image": load_image(prev_dir),
-            "dom": load_json(prev_dir)
+            "image": load_image(prev_commit),
+            "dom": load_json(prev_commit)
         },
         "curr": {
-            "image": load_image(curr_dir),
-            "dom": load_json(curr_dir)
-        }
+            "image": load_image(curr_commit),
+            "dom": load_json(curr_commit)
+        },
+        "prev_commit": prev_commit,
+        "curr_commit": curr_commit
     }
 
 def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
@@ -279,4 +279,4 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
         "summary": summary
     }
 
-print(get_current_pair_in_memory())
+

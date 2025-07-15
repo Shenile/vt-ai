@@ -48,7 +48,7 @@ function App() {
       </section>
 
       {/* Testimonial */}
-      <section className="bg-gray-50 py-12">
+      <section className="bg-white py-12">
         <div className="max-w-4xl mx-auto text-center">
           <blockquote className="text-xl italic text-gray-700">
             “VisualDiff AI helped us eliminate 95% of visual bugs before reaching production.”
