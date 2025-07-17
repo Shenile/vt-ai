@@ -3,7 +3,8 @@ import time
 import subprocess
 from pathlib import Path
 from PIL import Image, ImageChops
-import shutil
+import shutil, io
+import base64
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parent.parent
 
@@ -218,7 +219,6 @@ def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
         "summary": summary
     }
 
-
 def pixel_diff():
     pairs = get_current_pair_in_memory()
     if not pairs:
@@ -237,3 +237,8 @@ def pixel_diff():
     diff.show()  
     # diff.save("pixel_diff_result.png")
     # print("[✓] Pixel diff generated and saved.")
+
+def encode_image_to_base64(image):
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode('utf-8')}"
