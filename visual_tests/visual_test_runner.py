@@ -5,6 +5,8 @@ from utils import (
     mark_issues,
     encode_image_to_base64, update_last_processed
 )
+from commit_tracker import get_next_commit_pair
+
 
 def run_visual_test():
     """
@@ -21,38 +23,17 @@ def run_visual_test():
 
         # Step 1: Load commit pair
         print("[•] Loading commit pair from cache and repo...")
-        pair_data = get_current_pair_in_memory()
-        print(f"pair data : ", pair_data)
-
+        pair_data = get_next_commit_pair()
         if not pair_data:
-            print("[✗] No valid commit pair found.")
-            return None, "Could not load baseline pair."
-
-        if pair_data.get("first_time"):
-            print(f"[•] First-time baseline set to commit: {pair_data['curr_commit']}")
-            return None, "Base Commit recorded"
+            print("baseline have less than 2 commits., so aborting comparison")
+            return
 
         prev = pair_data.get("prev_commit")
         curr = pair_data.get("curr_commit")
-        if not prev or not curr or curr == prev:
-            return None, "Current and previous commits are identical or missing."
 
         # Step 2: Validate image and DOM data
         curr_data = pair_data.get("curr")
         prev_data = pair_data.get("prev")
-
-        if not curr_data or not prev_data:
-            return None, "One of the commit data objects is missing."
-
-        if "image" not in curr_data or "image" not in prev_data:
-            return None, "Screenshot missing in one of the commits."
-
-        if "dom" not in curr_data or "dom" not in prev_data:
-            return None, "DOM snapshot missing in one of the commits."
-
-        # # Optional sanity check: Ensure images aren't swapped (basic sanity by filename)
-        # if prev not in prev_data["image"] or curr not in curr_data["image"]:
-        #     return None, "Commit image mismatch or swapped during rendering."
 
         print(f"[✓] Comparing commits:\n     → Previous: {prev}\n     → Current : {curr}")
 

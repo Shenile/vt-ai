@@ -1,4 +1,4 @@
-# visual_tests/git_utils.py
+
 
 import subprocess
 from pathlib import Path
