@@ -99,7 +99,7 @@ function App() {
       </section>
 
       {/* Footer with slight pixel drift */}
-      <footer className="bg-red-100 border-t mt-12 text-[13px]">
+      <footer className="bg-slate-500 border-t mt-12 text-[13px]">
         <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between text-gray-500">
           <p>© 2025 VisualDiff AI</p>
           <p>Made in 🇮🇳 with precision </p>
