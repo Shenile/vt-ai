@@ -1,7 +1,6 @@
 from datetime import datetime
 from model_wrappers import LPIPSWrapper, CLIPWrapper
 from utils import (
-    get_current_pair_in_memory,
     mark_issues,
     encode_image_to_base64, update_last_processed
 )
@@ -77,8 +76,6 @@ def run_visual_test():
         end_time = datetime.now()
         duration = end_time - start_time
         print(f"[✓] Visual test completed in {duration.total_seconds():.2f}s")
-
-        update_last_processed(curr)
 
         # Step 7: Return result
         return {
