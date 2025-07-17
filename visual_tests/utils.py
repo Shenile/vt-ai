@@ -154,8 +154,6 @@ def get_current_pair_in_memory(page_name="test_home_page"):
     print("[✓] No newer valid commit found for comparison.")
     return None
 
-
-
 def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
                 lpips_thresh=0.03, clip_thresh=0.98, min_size=20):
     from PIL import ImageDraw
