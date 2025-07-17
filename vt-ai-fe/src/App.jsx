@@ -5,7 +5,7 @@ function App() {
     <div className="bg-white text-gray-800 min-h-screen font-sans tracking-wide">
       
       {/* Navigation */}
-      <header className="bg-red-200 shadow">
+      <header className="bg-red-300 shadow">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">VisualDiff AI</h1>
           <nav className="space-x-4">
