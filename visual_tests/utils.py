@@ -94,51 +94,67 @@ def get_git_commits(max_count=10):
 def get_current_pair_in_memory(page_name="test_home_page"):
     print(f"[•] Scanning baselines in: {BASELINE_PATH}")
 
-    last_processed = load_last_processed()
-    skip = [last_processed] if last_processed else []
-
-    curr_commit = get_valid_commit_with_baseline(page_name, skip)
-    if not curr_commit:
-        print("[!] No new valid commit with screenshot and DOM found.")
+    baseline_commits = [d.name for d in BASELINE_PATH.iterdir() if d.is_dir()]
+    if not baseline_commits:
+        print("[!] No baselines available. Exiting comparison safely.")
         return None
 
-    def load_image(commit_hash):
-        return Image.open(BASELINE_PATH / commit_hash / f"{page_name}.png").convert("RGB")
+    # Get commits in correct git order (most recent last)
+    git_commits = get_git_commits(max_count=50)  # adjust as needed
+    ordered_baselines = [c for c in git_commits if c in baseline_commits]
 
-    def load_json(commit_hash):
-        with open(BASELINE_PATH / commit_hash / f"{page_name}_dom.json", "r", encoding="utf-8") as f:
-            return json.load(f)
+    def is_valid(commit):
+        return (BASELINE_PATH / commit / f"{page_name}.png").exists() and \
+               (BASELINE_PATH / commit / f"{page_name}_dom.json").exists()
 
+    last_processed = load_last_processed()
+    if last_processed and last_processed not in ordered_baselines:
+        print(f"[!] Cached last commit {last_processed} not found in valid baselines.")
+        update_last_processed(None)
+        last_processed = None
+
+    # If first time running
     if not last_processed:
-        # FIRST TIME: just cache current and skip comparison
-        update_last_processed(curr_commit)
-        print(f"[•] First run — caching baseline commit: {curr_commit}")
-        return {
-            "first_time": True,
-            "curr_commit": curr_commit,
-            "curr": {
-                "image": load_image(curr_commit),
-                "dom": load_json(curr_commit)
+        for commit in ordered_baselines:
+            if is_valid(commit):
+                update_last_processed(commit)
+                return {
+                    "first_time": True,
+                    "curr_commit": commit,
+                    "curr": {
+                        "image": Image.open(BASELINE_PATH / commit / f"{page_name}.png").convert("RGB"),
+                        "dom": json.load(open(BASELINE_PATH / commit / f"{page_name}_dom.json", encoding="utf-8"))
+                    }
+                }
+        return None
+
+    # Else, find next commit after last_processed
+    try:
+        prev_index = ordered_baselines.index(last_processed)
+    except ValueError:
+        print(f"[!] Could not find cached commit {last_processed} in ordered baselines.")
+        return None
+
+    for next_commit in ordered_baselines[prev_index + 1:]:
+        if is_valid(next_commit):
+            return {
+                "first_time": False,
+                "prev_commit": last_processed,
+                "curr_commit": next_commit,
+                "prev": {
+                    "image": Image.open(BASELINE_PATH / last_processed / f"{page_name}.png").convert("RGB"),
+                    "dom": json.load(open(BASELINE_PATH / last_processed / f"{page_name}_dom.json", encoding="utf-8"))
+                },
+                "curr": {
+                    "image": Image.open(BASELINE_PATH / next_commit / f"{page_name}.png").convert("RGB"),
+                    "dom": json.load(open(BASELINE_PATH / next_commit / f"{page_name}_dom.json", encoding="utf-8"))
+                }
             }
-        }
 
-    # NORMAL CASE
-    update_last_processed(curr_commit)
-    print(f"[✓] Comparing:\n    Previous (cached): {last_processed}\n    Current (new)   : {curr_commit}")
+    print("[✓] No newer valid commit found for comparison.")
+    return None
 
-    return {
-        "first_time": False,
-        "prev_commit": last_processed,
-        "curr_commit": curr_commit,
-        "prev": {
-            "image": load_image(last_processed),
-            "dom": load_json(last_processed)
-        },
-        "curr": {
-            "image": load_image(curr_commit),
-            "dom": load_json(curr_commit)
-        }
-    }
+
 
 def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
                 lpips_thresh=0.03, clip_thresh=0.98, min_size=20):
