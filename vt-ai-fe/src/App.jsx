@@ -49,7 +49,7 @@ function App() {
       </section>
 
       {/* Dense layout section */}
-      <section className="bg-gray-50 py-16 px-6">
+      <section className="bg-slate-500 py-16 px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h4 className="text-xl font-semibold mb-2">Why VisualDiff?</h4>
