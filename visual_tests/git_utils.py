@@ -28,7 +28,7 @@ def is_ui_file(filepath):
 def is_ui_only_commit(commit_id):
     """Returns True if all files changed in the commit are UI files."""
     files = get_changed_files(commit_id)
-    return all(is_ui_file(f) for f in files) and len(files) > 0
+    return any(is_ui_file(f) for f in files) and len(files) > 0
 
 
 def get_ui_only_commits(n=20):

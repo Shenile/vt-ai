@@ -48,6 +48,34 @@ def sync_branch(branch, repo_path=PROJECT_ROOT_PATH, project_root_path=None):
 SCRIPT_PATH = Path(__file__).resolve().parent
 BASELINE_PATH = SCRIPT_PATH / "baseline"
 PROJECT_ROOT = SCRIPT_PATH.parent
+CACHE_FILE = BASELINE_PATH / "last_commit_cache.json"
+
+def load_last_processed():
+    if CACHE_FILE.exists():
+        with open(CACHE_FILE, "r") as f:
+            return json.load(f).get("last_processed")
+    else:
+        # Ensure baselines dir exists
+        BASELINE_PATH.mkdir(parents=True, exist_ok=True)
+
+        # Create empty cache file
+        with open(CACHE_FILE, "w") as f:
+            json.dump({"last_processed": None}, f, indent=2)
+
+        return None
+
+def update_last_processed(commit_hash):
+    with open(CACHE_FILE, "w") as f:
+        json.dump({"last_processed": commit_hash}, f, indent=2)
+
+def get_valid_commit_with_baseline(page_name, skip_commits):
+    for commit in get_git_commits():
+        if commit in skip_commits:
+            continue
+        commit_dir = BASELINE_PATH / commit
+        if (commit_dir / f"{page_name}.png").exists() and (commit_dir / f"{page_name}_dom.json").exists():
+            return commit
+    return None
 
 def get_git_commits(max_count=10):
     try:
@@ -64,27 +92,15 @@ def get_git_commits(max_count=10):
         return []
 
 def get_current_pair_in_memory(page_name="test_home_page"):
-    print(f"[•] Looking for valid baselines in: {BASELINE_PATH}")
+    print(f"[•] Scanning baselines in: {BASELINE_PATH}")
 
-    commits = get_git_commits(max_count=15)
-    if not commits:
+    last_processed = load_last_processed()
+    skip = [last_processed] if last_processed else []
+
+    curr_commit = get_valid_commit_with_baseline(page_name, skip)
+    if not curr_commit:
+        print("[!] No new valid commit with screenshot and DOM found.")
         return None
-
-    valid = []
-    for commit in commits:
-        commit_dir = BASELINE_PATH / commit
-        img_file = commit_dir / f"{page_name}.png"
-        json_file = commit_dir / f"{page_name}_dom.json"
-        if img_file.exists() and json_file.exists():
-            valid.append(commit)
-        if len(valid) == 2:
-            break
-
-    if len(valid) < 2:
-        print("[!] Not enough valid baseline commit folders.")
-        return None
-
-    curr_commit, prev_commit = valid[0], valid[1]
 
     def load_image(commit_hash):
         return Image.open(BASELINE_PATH / commit_hash / f"{page_name}.png").convert("RGB")
@@ -93,19 +109,35 @@ def get_current_pair_in_memory(page_name="test_home_page"):
         with open(BASELINE_PATH / commit_hash / f"{page_name}_dom.json", "r", encoding="utf-8") as f:
             return json.load(f)
 
-    print(f"[✓] Using baseline commits:\n    Previous: {prev_commit}\n    Current : {curr_commit}")
+    if not last_processed:
+        # FIRST TIME: just cache current and skip comparison
+        update_last_processed(curr_commit)
+        print(f"[•] First run — caching baseline commit: {curr_commit}")
+        return {
+            "first_time": True,
+            "curr_commit": curr_commit,
+            "curr": {
+                "image": load_image(curr_commit),
+                "dom": load_json(curr_commit)
+            }
+        }
+
+    # NORMAL CASE
+    update_last_processed(curr_commit)
+    print(f"[✓] Comparing:\n    Previous (cached): {last_processed}\n    Current (new)   : {curr_commit}")
 
     return {
+        "first_time": False,
+        "prev_commit": last_processed,
+        "curr_commit": curr_commit,
         "prev": {
-            "image": load_image(prev_commit),
-            "dom": load_json(prev_commit)
+            "image": load_image(last_processed),
+            "dom": load_json(last_processed)
         },
         "curr": {
             "image": load_image(curr_commit),
             "dom": load_json(curr_commit)
-        },
-        "prev_commit": prev_commit,
-        "curr_commit": curr_commit
+        }
     }
 
 def mark_issues(curr_pair, prev_pair, lpips_model, clip_model,
