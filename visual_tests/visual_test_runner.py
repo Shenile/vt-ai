@@ -41,7 +41,7 @@ def run_visual_test():
         lpips = LPIPSWrapper()
         clip = CLIPWrapper()
         print("[✓] Models initialized.")
-
+        
         # Step 4: Run visual comparison
         print("[•] Running visual comparison...")
         result = mark_issues(curr_data, prev_data, lpips, clip)

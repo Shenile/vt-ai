@@ -79,9 +79,9 @@ def get_next_commit_pair(page_name="test_home_page"):
         print("[✗] Not enough commits in baseline to compare.")
         return None
 
-    for i in range(len(history) - 1):
-        last_processed = history[i]
-        next_commit = history[i + 1]
+    for i in range(len(history) - 1, 0, -1):
+        last_processed = history[i - 1]
+        next_commit = history[i]
 
         prev_img_path = BASELINE_DIR / last_processed / f"{page_name}.png"
         prev_dom_path = BASELINE_DIR / last_processed / f"{page_name}_dom.json"
@@ -91,6 +91,8 @@ def get_next_commit_pair(page_name="test_home_page"):
 
         if all(p.exists() for p in [prev_img_path, prev_dom_path, curr_img_path, curr_dom_path]):
             try:
+                print(f"RETURNING COMMITS\n{last_processed, next_commit}")
+                print(f"History : {history}")
                 return {
                     "prev_commit": last_processed,
                     "curr_commit": next_commit,
