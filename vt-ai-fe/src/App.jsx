@@ -17,7 +17,7 @@ function App() {
       </header>
 
       {/* Hero */}
-      <section className="bg-gray-100 py-16 px-6 text-center">
+      <section className="bg-gray-400 py-16 px-6 text-center">
         <h2 className="text-4xl font-bold mb-4">AI-Powered Visual Testing Tool</h2>
         <p className="text-lg text-gray-600 mb-6">
           Catch UI issues b4 users notice. Compare, detect, and 📸 monitor pixel-level drifts. 
