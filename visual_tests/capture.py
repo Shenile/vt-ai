@@ -1,6 +1,7 @@
 import os, json
 from playwright.sync_api import sync_playwright, TimeoutError
 from config import TEST_URLS
+from git_utils import is_ui_only_commit
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -66,6 +67,10 @@ def capture_screenshot_and_dom(url, file_name, file_path):
         print(f"Exception during capture: {e}")
 
 def save_page_snapshots(commit_hash):
+    
+    if not is_ui_only_commit(commit_hash):
+        print(f"Ignoring commit {commit_hash},\nbecause there is no changes in frontend/ui files.")
+
     baseline_dir = os.path.join(CURRENT_DIR, 'baseline', commit_hash)
     print(f"Creating baseline directory: {baseline_dir}")
     os.makedirs(baseline_dir, exist_ok=True)
