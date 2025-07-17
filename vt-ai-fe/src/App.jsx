@@ -62,7 +62,7 @@ function App() {
             </ul>
           </div>
           <div className="border border-dashed p-4">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-900 text-sm">
               “VisualDiff AI helped catch 98.4% of regressions missed by pixel-diff tools.”<br />
               — QA Analyst, AppCorp<br />
               <br />
