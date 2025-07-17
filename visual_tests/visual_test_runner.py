@@ -25,7 +25,7 @@ def run_visual_test():
         pair_data = get_next_commit_pair()
         if not pair_data:
             print("baseline have less than 2 commits., so aborting comparison")
-            return
+            return None, "insufficeint commits to cpmapre"
 
         prev = pair_data.get("prev_commit")
         curr = pair_data.get("curr_commit")
