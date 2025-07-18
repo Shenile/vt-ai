@@ -1,8 +1,6 @@
-import json
-import time
 import subprocess
 from pathlib import Path
-from PIL import Image, ImageChops
+from PIL import ImageChops
 import shutil, io
 import base64
 
