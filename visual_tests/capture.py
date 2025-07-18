@@ -114,7 +114,7 @@ def save_page_snapshots(commit_hash: str) -> Optional[Dict[str, CaptureResult]]:
     if not is_ui_only_commit(commit_hash):
         print(f"Skipping non-UI commit: {commit_hash}")
         return None
-
+    
     baseline_dir = os.path.join(CURRENT_DIR, 'baseline', commit_hash)
     capturer = PageCapturer(baseline_dir)
     results = {}
