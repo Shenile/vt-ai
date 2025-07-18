@@ -46,6 +46,7 @@ def run_visual_test():
         # Step 4: Run visual comparison
         print("[•] Running visual comparison...")
         result = mark_issues(curr_data, prev_data, lpips, clip)
+        print(result)
         print("[✓] Visual comparison completed.")
 
         # Step 5: Validate diff result

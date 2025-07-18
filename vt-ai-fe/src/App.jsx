@@ -22,7 +22,7 @@ function App() {
         <p className="text-lg text-gray-600 mb-6">
           Catch UI issues b4 users notice. Compare, detect, and 📸 monitor pixel-level drifts. 
         </p>
-        <button className="bg-green-500 text-white px-6 py-3 rounded hover:bg-gray-800 shadow-md">
+        <button className="bg-red-500 text-white px-6 py-3 rounded hover:bg-gray-800 shadow-md">
           Get Started Today
         </button>
       </section>
