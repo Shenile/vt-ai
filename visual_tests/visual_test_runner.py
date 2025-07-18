@@ -4,7 +4,7 @@ from utils import (
     # mark_issues,
     encode_image_to_base64
 )
-from diff import mark_issues
+from diff import VisualComparator
 from commit_tracker import get_next_commit_pair
 
 
@@ -44,8 +44,13 @@ def run_visual_test():
         print("[✓] Models initialized.")
         
         # Step 4: Run visual comparison
+        comparator = VisualComparator(
+            lpips_model=lpips,
+            clip_model=clip
+        )
         print("[•] Running visual comparison...")
-        result = mark_issues(curr_data, prev_data, lpips, clip)
+        # result = mark_issues(curr_data, prev_data, lpips, clip)
+        result = comparator.compare(prev_data, curr_data)
         
         print("[✓] Visual comparison completed.")
 

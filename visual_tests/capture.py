@@ -34,9 +34,11 @@ class PageCapturer:
         page.evaluate("() => new Promise(resolve => document.fonts.ready.then(resolve))")
 
     def _capture_dom(self, page) -> List[Dict]:
-        """Enhanced DOM snapshot with visual and structural information."""
         return page.evaluate("""() => {
             const elements = [];
+            const elementMap = new Map();  // Map DOM nodes → assigned ID
+            let counter = 0;
+
             const walker = document.createTreeWalker(
                 document.body,
                 NodeFilter.SHOW_ELEMENT,
@@ -47,24 +49,32 @@ class PageCapturer:
             while (walker.nextNode()) {
                 const el = walker.currentNode;
                 const rect = el.getBoundingClientRect();
-                
+
                 if (rect.width > 0 && rect.height > 0) {
+                    const id = `el_${counter++}`;
+                    elementMap.set(el, id);
+
+                    const parentId = elementMap.get(el.parentElement) || null;
+
                     elements.push({
+                        id: id,
                         tag: el.tagName.toLowerCase(),
                         text: (el.innerText || "").trim().replace(/\\s+/g, " "),
                         x: Math.round(rect.x),
                         y: Math.round(rect.y),
                         width: Math.round(rect.width),
                         height: Math.round(rect.height),
-                        parent_id: el.parentElement?.id || null,
+                        parent_id: parentId,
                         is_visible: window.getComputedStyle(el).display !== 'none',
                         is_clickable: el.hasAttribute('onclick') || 
-                                     ['button','a','input'].includes(el.tagName.toLowerCase())
+                                    ['button','a','input'].includes(el.tagName.toLowerCase())
                     });
                 }
             }
+
             return elements;
         }""")
+
 
     def capture(self, url: str, name: str) -> CaptureResult:
         """Capture screenshot and DOM for a given URL."""
