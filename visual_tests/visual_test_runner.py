@@ -1,9 +1,10 @@
 from datetime import datetime
 from model_wrappers import LPIPSWrapper, CLIPWrapper
 from utils import (
-    mark_issues,
-    encode_image_to_base64, update_last_processed
+    # mark_issues,
+    encode_image_to_base64
 )
+from diff import mark_issues
 from commit_tracker import get_next_commit_pair
 
 
