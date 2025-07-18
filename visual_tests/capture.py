@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 from playwright.sync_api import sync_playwright, TimeoutError
 from config import TEST_URLS
 from git_utils import is_ui_only_commit
-
+# DUMMY
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 @dataclass
