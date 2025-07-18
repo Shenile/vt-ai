@@ -29,7 +29,7 @@ function App() {
 
       {/* Noise image */}
       <section>
-        <div className="px-4 py-4">
+        <div className="px-24 py-4">
           <img src="https://i.pinimg.com/474x/45/4f/ea/454feaa66290a90af0331597793a71ef.jpg" alt="" />
         </div>
       </section>
