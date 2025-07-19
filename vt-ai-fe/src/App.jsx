@@ -20,7 +20,7 @@ function App() {
       <section className="bg-gray-400 py-16 px-6 text-center">
         <h2 className="text-4xl font-bold mb-4">AI/ML-Powered Visual Testing Tooleyy</h2>
         <p className="text-lg text-gray-600 mb-6">
-          Catch UI issues  users notice. Compare, detect, and  donitor pixel-level drifts 📸. 
+          Catch UI issues  users notice. Compare, detect, and  donitor pixel-level drifts. 
         </p>
         <button className="bg-sky-300 text-white px-6 py-3 rounded hover:bg-gray-800 shadow-md">
           Get Started Today
