@@ -60,7 +60,7 @@ function App() {
             </p>
           </div>
 
-          <div>
+          <div> 
             <h4 className="text-xl font-semibold mb-2">Why VisualDiff?</h4>
             <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
               <li>Detects layout shifts</li>
