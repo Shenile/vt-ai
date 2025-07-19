@@ -51,6 +51,15 @@ function App() {
       {/* Dense layout section */}
       <section className="bg-slate-900 py-16 px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="border border-dashed p-4">
+            <p className="text-gray-900 text-sm">
+              “VisualDiff AI helped catch 98.4% of regressions missed by pixel-diff tools.”<br />
+              — QA Analyst, AppCorp<br />
+              <br />
+              “Saved 2+ hours/day of manual testing. Incredible ROI.” — Dev Manager
+            </p>
+          </div>
+
           <div>
             <h4 className="text-xl font-semibold mb-2">Why VisualDiff?</h4>
             <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
@@ -60,14 +69,6 @@ function App() {
               <li>Zero manual review required 🧪</li>
               <li>Invisible DOM changes? We see them visually.</li>
             </ul>
-          </div>
-          <div className="border border-dashed p-4">
-            <p className="text-gray-900 text-sm">
-              “VisualDiff AI helped catch 98.4% of regressions missed by pixel-diff tools.”<br />
-              — QA Analyst, AppCorp<br />
-              <br />
-              “Saved 2+ hours/day of manual testing. Incredible ROI.” — Dev Manager
-            </p>
           </div>
         </div>
       </section>
